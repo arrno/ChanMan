@@ -1,5 +1,6 @@
+use rayon::prelude::*;
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex}; // Import Rayon parallel iterators
 
 type Callback = Arc<dyn Fn(&str) + Send + Sync>;
 
@@ -34,8 +35,9 @@ impl ChanMan {
 
     pub fn publish(&self, topic: &str, message: &str) {
         let subs = self.subs.lock().unwrap();
+
         if let Some(subscribers) = subs.get(topic) {
-            subscribers.iter().for_each(|(_, sub)| sub(message));
+            subscribers.par_iter().for_each(|(_, sub)| sub(message));
         }
     }
 }
